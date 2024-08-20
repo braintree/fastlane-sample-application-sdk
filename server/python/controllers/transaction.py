@@ -10,7 +10,7 @@ def braintree_sdk_transaction(transactionData):
         billingAddress = transactionData["paymentToken"]["paymentSource"]["card"][
             "billingAddress"
         ]
-        shippingAddress = transactionData["shippingAddress"]
+        shippingAddress = transactionData.get("shippingAddress", None)
 
         # Convert information to snake_case for Braintree python gateway.
         saleRequest = {
@@ -47,7 +47,7 @@ def braintree_sdk_transaction(transactionData):
                     "shipping_method": "ground",
                 }
                 if shippingAddress
-                else None
+                else {}
             ),
             "options": {"submit_for_settlement": True},
         }
@@ -68,5 +68,5 @@ def braintree_sdk_transaction(transactionData):
             }
         )
     except Exception as error:
-        print(error)
+        print(str(error))
         return make_response(jsonify(error=str(error)), 500)
