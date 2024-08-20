@@ -7,6 +7,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 Env.Load();
 
+// Enable CORS middlware
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.WithOrigins("*");
+        });
+});
+
 // Add services to the container.
 builder.Services.Configure<TemplateSettings>(
     builder.Configuration.GetSection("TemplateSettings"));
@@ -24,7 +34,6 @@ builder.Services.AddSingleton(sp =>
 
 var app = builder.Build();
 
-
 app.UseDefaultFiles(new DefaultFilesOptions
 {
     FileProvider = new PhysicalFileProvider(
@@ -40,6 +49,8 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.UseRouting();
+
+app.UseCors();
 
 app.MapControllers();
 
