@@ -23,7 +23,7 @@ export function createTransaction(req, res) {
           },
         }),
         options: {
-          submitForSettlement: true
+          submitForSettlement: true,
         },
       },
       (error, result) => {
@@ -33,7 +33,7 @@ export function createTransaction(req, res) {
           return;
         }
         res.json({ result });
-      }
+      },
     );
   } catch (error) {
     console.error(error);

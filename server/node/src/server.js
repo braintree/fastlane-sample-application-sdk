@@ -13,12 +13,12 @@ export function configureServer(app) {
 
   app.enable('strict routing');
 
-  app.use(cors());
   app.use(express.json());
+  app.use(cors());
 
   app.get('/', renderCheckout);
   app.get('/client-token', getClientToken);
   app.post('/transaction', createTransaction);
 
-  app.use(express.static('../../client'));
+  app.use(express.static('../../client/html/src'));
 }

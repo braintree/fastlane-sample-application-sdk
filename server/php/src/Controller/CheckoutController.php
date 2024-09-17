@@ -45,7 +45,11 @@ class CheckoutController extends AbstractController
         ];
 
         $htmlTemplate = file_get_contents(
-            __DIR__ . "/../../../shared/views/checkout.html"
+            __DIR__ .
+                "/../../../shared/views/" .
+                ($isFlexibleIntegration
+                    ? "checkout-flexible.html"
+                    : "checkout.html")
         );
 
         $template = $this->mustache->render($htmlTemplate, $locals);

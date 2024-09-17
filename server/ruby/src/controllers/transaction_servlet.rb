@@ -15,11 +15,11 @@ class TransactionServlet < WEBrick::HTTPServlet::AbstractServlet
     device_data = data['deviceData']
 
     result = get_braintree_gateway.transaction.sale(
-      amount: '10.00',
-      payment_method_nonce: payment_token['id'],
-      device_data: device_data,
-      options: {
-        submit_for_settlement: true
+      :amount => "10.00",
+      :payment_method_nonce => payment_token['id'],
+      :device_data => device_data,
+      :options => {
+        :submit_for_settlement => true
       }
     )
 
@@ -27,11 +27,15 @@ class TransactionServlet < WEBrick::HTTPServlet::AbstractServlet
     response.content_type = 'application/json'
     response.header['Access-Control-Allow-Origin'] = '*'
     response.header['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, PUT, DELETE'
-    response.body = {
-      result: {
-        success: result.success?,
-        transaction: { id: result.transaction.id }
-      }
-    }.to_json
+
+    response.body = (result.success? ?
+      { result: { success: result.success?, transaction: { id: result.transaction.id } } } :
+      { result: { success: false, message: result.message } }).to_json
+  end
+
+  def do_OPTIONS(request, response)
+    response.header['Access-Control-Allow-Origin'] = '*'
+    response.header['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, PUT, DELETE'
+    response.header['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
   end
 end

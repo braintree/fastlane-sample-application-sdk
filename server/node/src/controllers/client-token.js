@@ -15,7 +15,7 @@ export function getClientToken(_req, res) {
           return;
         }
         res.json({ clientToken: response.clientToken });
-      }
+      },
     );
   } catch (error) {
     console.error(error);
