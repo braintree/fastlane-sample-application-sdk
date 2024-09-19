@@ -1,13 +1,13 @@
 {
-    "name": "Python",
-    "image": "mcr.microsoft.com/devcontainers/python:3.10",
-    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}/server/python",
+    "name": "HTML + Ruby",
+    "image": "mcr.microsoft.com/devcontainers/ruby:2.7",
+    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
     "forwardPorts": [
-        8888
+        4567
     ],
     "portsAttributes": {
-        "8888": {
-            "label": "Python",
+        "4567": {
+            "label": "Ruby",
             "onAutoForward": "openBrowserOnce"
         }
     },
@@ -26,19 +26,20 @@
         }
     },
     "containerEnv": {
-        "DOMAINS": "paypal.com"
+        "DOMAINS": "paypal.com",
+        "VISIBLE_FOLDER_SERVER": "ruby",
+        "VISIBLE_FOLDER_CLIENT": "html"
     },
     "customizations": {
         "vscode": {
             "extensions": [
                 "vsls-contrib.codetour",
                 "PayPal.vscode-paypal",
-                "ms-python.python"
+                "rebornix.Ruby"
             ]
         },
         "settings": {
-            "git.openRepositoryInParentFolders": "always",
-            "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python"
+            "git.openRepositoryInParentFolders": "always"
         },
         "codespaces": {
             "openFiles": [
@@ -46,6 +47,6 @@
             ]
         }
     },
-    "postCreateCommand": "python -m venv .venv && . .venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt",
-    "postAttachCommand": ". .venv/bin/activate && python app.py"
+    "postCreateCommand": "chmod +x .devcontainer/update_settings.sh && .devcontainer/update_settings.sh && cd server/ruby && gem install bundler:1.17.2 && bundle _1.17.2_ install --path vendor/bundle",
+    "postAttachCommand": "cd server/ruby && bundle exec ruby src/server.rb"
 }
