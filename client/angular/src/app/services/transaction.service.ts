@@ -12,7 +12,10 @@ interface TransactionShippingAddressData {
     region: string;
     postalCode: string;
     countryCodeAlpha2: string;
-    phoneNumber?: string;
+    internationalPhone?: {
+        countryCode: string;
+        nationalNumber: string;
+    };
 };
 interface TransactionRequest {
     name: string;

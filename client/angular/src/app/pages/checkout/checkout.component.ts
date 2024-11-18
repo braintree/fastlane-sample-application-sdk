@@ -2,7 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { finalize } from 'rxjs';
 import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
 import { CustomerResponse } from 'src/app/components/customer/customer.component';
-import { ShippingAddressData } from 'src/app/components/shipping/shipping.component';
+import { ShippingAddressFormData } from 'src/app/components/shipping/shipping.component';
 import { CustomWindow } from 'src/app/interfaces/window.interface';
 import { TokenService } from 'src/app/services/token.service';
 import { TransactionService } from 'src/app/services/transaction.service';
@@ -89,7 +89,9 @@ export class CheckoutComponent implements OnInit {
         this.fastlaneProfile = profile;
         this.fastlaneDeviceData = deviceData;
         this.fastlanePaymentComponent = await FastlanePaymentComponent();
-        this.fastlaneWatermarkComponent = await FastlaneWatermarkComponent();
+        this.fastlaneWatermarkComponent = await FastlaneWatermarkComponent({
+            includeAdditionalInfo: true
+        });
     }
 
     public async onCheckoutButtonClick(): Promise<void> {
@@ -154,7 +156,7 @@ export class CheckoutComponent implements OnInit {
         }
     }
 
-    public onShippingChange(nextShipping: ShippingAddressData): void {
+    public onShippingChange(nextShipping: ShippingAddressFormData): void {
         this.currentCustomer.shippingAddress = nextShipping;
         
         if (!nextShipping) {
@@ -171,7 +173,7 @@ export class CheckoutComponent implements OnInit {
         this.currentSection = nextSection;
     }
 
-    private getTransactionShippingAddressData(shippingAddress: ShippingAddressData | undefined) {
+    private getTransactionShippingAddressData(shippingAddress: ShippingAddressFormData | undefined) {
         return shippingAddress && {
             firstName: shippingAddress.firstName,
             lastName: shippingAddress.lastName,
@@ -182,8 +184,10 @@ export class CheckoutComponent implements OnInit {
             region: shippingAddress.region,
             postalCode: shippingAddress.postalCode,
             countryCodeAlpha2: shippingAddress.countryCodeAlpha2,
-            phoneNumber: shippingAddress.phoneCountryCode && shippingAddress.phoneNumber ?
-                shippingAddress.phoneCountryCode + shippingAddress.phoneNumber : undefined,
+            internationalPhone: shippingAddress.phoneCountryCode && shippingAddress.phoneNumber ? {
+                countryCode: shippingAddress.phoneCountryCode,
+                nationalNumber: shippingAddress.phoneNumber
+            } : undefined
         };
     }
 }

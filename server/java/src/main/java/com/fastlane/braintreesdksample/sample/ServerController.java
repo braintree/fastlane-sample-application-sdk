@@ -2,6 +2,7 @@ package com.fastlane.braintreesdksample.sample;
 
 import com.braintreegateway.BraintreeGateway;
 import com.braintreegateway.ClientTokenRequest;
+import com.braintreegateway.Environment;
 import com.braintreegateway.Result;
 import com.braintreegateway.Transaction;
 import com.braintreegateway.TransactionAddressRequest.ShippingMethod;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 @RestController
-public class SampleController {
+public class ServerController {
 
     private final String title = "Fastlane - Braintree SDK Integration";
     private final String prerequisiteScripts =
@@ -44,11 +46,38 @@ public class SampleController {
     private final BraintreeGateway gateway;
     private final ArrayList<String> domains;
 
-    public SampleController() {
+    public ServerController() {
         this.dotenv = Dotenv.load();
-        this.gateway = BraintreeGatewayComponent.getInstance().getGateway();
+        this.gateway = new BraintreeGateway(
+            Environment.SANDBOX,
+            dotenv.get("BRAINTREE_MERCHANT_ID"),
+            dotenv.get("BRAINTREE_PUBLIC_KEY"),
+            dotenv.get("BRAINTREE_PRIVATE_KEY")
+        );
         this.domains = new ArrayList<>(Arrays.asList(dotenv.get("DOMAINS").split(",")));
     }
+
+    /* ######################################################################
+     * Token generation helpers
+     * ###################################################################### */
+
+    @CrossOrigin
+    @GetMapping("/client-token")
+    public ResponseEntity<?> getClientToken() {
+        try {
+            ClientTokenRequest clientTokenRequest = new ClientTokenRequest().domains(domains);
+
+            String clientToken = gateway.clientToken().generate(clientTokenRequest);
+
+            return new ResponseEntity<>(new ClientTokenResponse(clientToken), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /* ######################################################################
+     * Serve checkout page
+     * ###################################################################### */
 
     @GetMapping("/")
     public ModelAndView getCheckout(@RequestParam(name = "flexible", required = false) String isFlexible, Model model) {
@@ -65,19 +94,9 @@ public class SampleController {
         return new ModelAndView(page, model.asMap());
     }
 
-    @CrossOrigin
-    @GetMapping("/client-token")
-    public ResponseEntity<?> getClientToken() {
-        try {
-            ClientTokenRequest clientTokenRequest = new ClientTokenRequest().domains(domains);
-
-            String clientToken = gateway.clientToken().generate(clientTokenRequest);
-
-            return new ResponseEntity<>(new ClientTokenResponse(clientToken), HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+    /* ######################################################################
+     * Process transactions
+     * ###################################################################### */
 
     @CrossOrigin
     @PostMapping("/transaction")

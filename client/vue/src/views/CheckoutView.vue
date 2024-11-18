@@ -201,8 +201,13 @@ async function submitShippingAddress() {
     region,
     postalCode,
     countryCodeAlpha2,
-    phoneNumber:
-      telCountryCode && telNational ? telCountryCode + telNational : undefined,
+    internationalPhone:
+      telCountryCode && telNational
+        ? {
+            countryCode: telCountryCode,
+            nationalNumber: telNational,
+          }
+        : undefined,
   };
 
   setShippingSummary(shippingAddress);

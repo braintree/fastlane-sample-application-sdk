@@ -68,7 +68,7 @@ async function initialize() {
   });
 
   cardComponent = await fastlaneInstance.FastlaneCardComponent();
-  paymentWatermark = await fastlaneInstance.FastlaneWatermarkComponent();
+  paymentWatermark = await fastlaneInstance.FastlaneWatermarkComponent({ includeAdditionalInfo: false });
 
   watermarkComponent = await fastlaneInstance.FastlaneWatermarkComponent({
     includeAdditionalInfo: true,
@@ -77,7 +77,6 @@ async function initialize() {
 }
 
 async function lookupEmailProfile() {
-
   // Checks if email is empty or in a invalid format
   const isEmailValid = validateFields(checkoutForm.value, ['email']);
 
@@ -181,10 +180,11 @@ async function handleEditShipping() {
 }
 
 async function submitShippingAddress() {
-
   if (!isShippingRequired.value) {
     shippingAddress = undefined;
-    activeSection.value = memberHasSavedPaymentMethods.value ? 'payment' : 'billing';
+    activeSection.value = memberHasSavedPaymentMethods.value
+      ? 'payment'
+      : 'billing';
     addressSummary.value = getAddressSummary({});
     return;
   }
@@ -233,8 +233,13 @@ async function submitShippingAddress() {
     region,
     postalCode,
     countryCodeAlpha2,
-    phoneNumber: telCountryCode && telNational ? 
-      telCountryCode + telNational : undefined,
+    internationalPhone:
+      telCountryCode && telNational
+        ? {
+            countryCode: telCountryCode,
+            nationalNumber: telNational,
+          }
+        : undefined,
   };
 
   addressSummary.value = getAddressSummary(shippingAddress);
@@ -252,7 +257,6 @@ async function handleEditBilling() {
 }
 
 async function submitBillingAddress() {
-
   // validate form values
   const isBillingFormValid = validateFields(checkoutForm.value, [
     'billing-address-line1',
@@ -514,9 +518,7 @@ function setPaymentSummary(paymentToken) {
               placeholder="Company name (optional)"
               v-model="shippingAddressForm.company"
             />
-            <label for="company" class="label">
-              Company name (optional)
-            </label>
+            <label for="company" class="label"> Company name (optional) </label>
           </div>
         </div>
         <div class="form-row">
@@ -580,7 +582,8 @@ function setPaymentSummary(paymentToken) {
         <div class="form-row">
           <div class="form-group">
             <input
-              required pattern="\d{5}(-\d{4})?"
+              required
+              pattern="\d{5}(-\d{4})?"
               title="The ZIP code must have the one of the following formats: 12345 or 12345-6789"
               id="shipping-postal-code"
               name="postal-code"
@@ -592,10 +595,10 @@ function setPaymentSummary(paymentToken) {
           </div>
           <div class="form-group">
             <input
-              required 
-              pattern="US" 
-              minlength="2" 
-              maxlength="2" 
+              required
+              pattern="US"
+              minlength="2"
+              maxlength="2"
               title="Currently only available to the US"
               id="shipping-country"
               name="country"
@@ -611,9 +614,10 @@ function setPaymentSummary(paymentToken) {
         <div class="form-row">
           <div class="form-group">
             <input
-              pattern="([0-9]{1,3})?" 
+              pattern="([0-9]{1,3})?"
               title="Please enter a valid country calling code with 1 to 3 digits"
-              minlength="1" maxlength="3"
+              minlength="1"
+              maxlength="3"
               id="tel-country-code"
               name="tel-country-code"
               autocomplete="tel-country-code"
@@ -731,7 +735,7 @@ function setPaymentSummary(paymentToken) {
         <div class="form-row">
           <div class="form-group">
             <input
-              required 
+              required
               pattern="\d{5}(-\d{4})?"
               title="The ZIP code must have the one of the following formats: 12345 or 12345-6789"
               id="billing-postal-code"
@@ -744,10 +748,10 @@ function setPaymentSummary(paymentToken) {
           </div>
           <div class="form-group">
             <input
-              required 
-              pattern="US" 
-              minlength="2" 
-              maxlength="2" 
+              required
+              pattern="US"
+              minlength="2"
+              maxlength="2"
               title="Currently only available to the US"
               id="billing-country"
               name="billing-country"
