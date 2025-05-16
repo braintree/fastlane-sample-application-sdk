@@ -86,14 +86,32 @@ class ServerController extends AbstractController
 
         $gateway = BraintreeGateway::getGateway();
 
-        $result = $gateway->transaction()->sale([
+        $payload = [
             "amount" => "10.00",
             "paymentMethodNonce" => $data["paymentToken"]["id"],
             "deviceData" => $data["deviceData"],
+            "billing" =>
+                $data["paymentToken"]["paymentSource"]["card"][
+                    "billingAddress"
+                ] ?? null,
+            "customer" => [
+                "email" => $data["email"],
+            ],
             "options" => [
                 "submitForSettlement" => true,
             ],
-        ]);
+        ];
+
+        if (
+            array_key_exists("shippingAddress", $data) &&
+            !empty($data["shippingAddress"])
+        ) {
+            $payload["shipping"] = array_merge($data["shippingAddress"], [
+                "shippingMethod" => "ground",
+            ]);
+        }
+
+        $result = $gateway->transaction()->sale($payload);
 
         return new JsonResponse(["result" => $result]);
     }

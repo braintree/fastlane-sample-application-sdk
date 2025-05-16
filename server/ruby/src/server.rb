@@ -89,18 +89,52 @@ class TransactionServlet < WEBrick::HTTPServlet::AbstractServlet
 
     email = data['email']
     name = data['name']
-    shipping_address = data['shippingAddress']
     payment_token = data['paymentToken']
     device_data = data['deviceData']
 
-    result = get_braintree_gateway.transaction.sale(
+    billing_address = data["paymentToken"]["paymentSource"]["card"]["billingAddress"]
+
+    payload = {
       :amount => "10.00",
       :payment_method_nonce => payment_token['id'],
+      :billing => {
+        :first_name => billing_address["firstName"],
+        :last_name => billing_address["lastName"],
+        :company => billing_address["company"],
+        :street_address => billing_address["streetAddress"],
+        :extended_address => billing_address["extendedAddress"],
+        :locality => billing_address["locality"],
+        :region => billing_address["region"],
+        :postal_code => billing_address["postalCode"],
+        :country_code_alpha2 => billing_address["countryCodeAlpha2"]
+      },
       :device_data => device_data,
       :options => {
         :submit_for_settlement => true
       }
-    )
+    }
+
+    if data.key?("shippingAddress") && !data["shippingAddress"].to_s.empty?
+      shipping_address = data["shippingAddress"]
+      payload[:shipping] = {
+        :first_name => shipping_address["firstName"],
+        :last_name => shipping_address["lastName"],
+        :company => shipping_address["company"],
+        :street_address => shipping_address["streetAddress"],
+        :extended_address => shipping_address["extendedAddress"],
+        :locality => shipping_address["locality"],
+        :region => shipping_address["region"],
+        :postal_code => shipping_address["postalCode"],
+        :country_code_alpha2 => shipping_address["countryCodeAlpha2"],
+        :international_phone => {
+          :country_code => shipping_address["internationalPhone"]["countryCode"],
+          :national_number => shipping_address["internationalPhone"]["nationalNumber"]
+        },
+        :shipping_method => "ground"
+      }
+    end
+
+    result = get_braintree_gateway.transaction.sale(payload)
 
     response.status = 201
     response.content_type = 'application/json'
@@ -123,7 +157,7 @@ end
 ## Run the server
 #######################################################################
 
-server = WEBrick::HTTPServer.new Port: 8080, DocumentRoot: views_root
+server = WEBrick::HTTPServer.new Port: ENV['PORT'] || 8080, DocumentRoot: views_root
 
 trap 'INT' do server.shutdown end
 
